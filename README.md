@@ -152,3 +152,4 @@ The query is built using Common Table Expressions (CTEs) to process the data in 
 
 The final output provides a daily breakdown of the above metrics for the top-performing countries, allowing for a detailed analysis of user engagement and email effectiveness in key markets.
 
+![image](https://github.com/user-attachments/assets/140f82b9-4e48-40fd-b40c-da36b637a6ba)
