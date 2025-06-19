@@ -14,7 +14,7 @@ Ultimately, a query ranks countries based on two primary metrics: the total numb
 The query is built using Common Table Expressions (CTEs) to process the data in a logical, step-by-step manner.
 
 ```account_data```: Gathers daily statistics on the number of unique accounts, grouped by country, send interval, and user status (verified, unsubscribed).
-
+```sql
     WITH account_data AS (
       SELECT
         s.date as date,
@@ -32,7 +32,7 @@ The query is built using Common Table Expressions (CTEs) to process the data in 
       ON acs.account_id = a.id
       GROUP BY 1, 2, 3, 4, 5
     )
-
+```
 ```email_data```: Aggregates data from email campaigns, including:
 
 ```sent_cnt```: The number of emails sent.
@@ -41,7 +41,7 @@ The query is built using Common Table Expressions (CTEs) to process the data in 
 
 ```visit_cnt```: The number of clicks on links within emails.
         This data is also grouped by date, country, and account attributes.
-
+```sql
     email_data AS (
       SELECT
         DATE_ADD(s.date, INTERVAL es.sent_date DAY) as date,
@@ -67,9 +67,9 @@ The query is built using Common Table Expressions (CTEs) to process the data in 
       ON es.id_account = a.id
       GROUP BY 1, 2, 3, 4, 5
     )
-
+```
 ```union_data```: Combines the results from account_data and email_data into a single dataset for further aggregation.
-
+```sql
     union_data AS (
       SELECT
         date,
@@ -97,8 +97,9 @@ The query is built using Common Table Expressions (CTEs) to process the data in 
         visit_cnt
       FROM email_data
     )
+```
 ```daily_stats```: Sums the daily metrics and uses window functions to calculate the total number of accounts and emails sent per country over the entire period.
-
+```sql
     daily_stats AS (
       SELECT
         date,
@@ -115,9 +116,9 @@ The query is built using Common Table Expressions (CTEs) to process the data in 
       FROM union_data
       GROUP BY 1, 2, 3, 4, 5
     )
-
+```
 ```rank_data```: Ranks each country using DENSE_RANK() based on its total account count and total sent email count.
-
+```python
     rank_data AS (
       SELECT
         *,
@@ -125,14 +126,15 @@ The query is built using Common Table Expressions (CTEs) to process the data in 
         DENSE_RANK() OVER (ORDER BY total_country_sent_cnt DESC) as rank_total_country_sent_cnt
       FROM daily_stats
     )
+```
  ```Final SELECT```: Filters the final result set to include only countries that rank in the top 10 for either total accounts or total emails sent, ordered for clear presentation.
-
+```sql
     SELECT
       *
     FROM rank_data
     WHERE rank_total_country_account_cnt <= 10 OR rank_total_country_sent_cnt <= 10
     ORDER BY date, country, send_interval, is_verified, is_unsubscribed
-
+```
 ## Key Metrics
 
  ```acc_cnt```: Daily active accounts.
